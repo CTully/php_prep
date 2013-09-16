@@ -1,0 +1,115 @@
+<?php
+
+define('HEADER_GUARD',true);
+//define the absolute path
+define('APP_ROOT_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+require_once APP_ROOT_PATH . 'bootstrap.php';
+
+	$notes = array();
+	$notes_files = array();
+	$has_files=null;
+	$textbox = '<li><input type="text" name="message" placeholder="Message" maxlength="255" /></li>';
+	if($query = $mysqli->query("SELECT * FROM notes ORDER BY id DESC"))
+	{
+		while($note_row=$query->fetch_object()){
+		$notes[$note_row->id] = $note_row;
+		}
+		$query->close();
+	}
+
+	if($query = $mysqli->query("SELECT * FROM notes INNER JOIN notes_attachment ON notes.created=notes_attachment.note_id"))
+	{
+
+		while($note_rows = $query->fetch_object()){
+		$notes_files[$note_rows->id] =  $note_rows;
+		}
+		$query->close();
+		$has_files = true;
+	}
+	print $has_files;
+?>
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Notes list</title>
+	</head>
+
+ <body>
+	<div class="wrapper">
+	  <header id="header">
+		<h1 class="site-name">My notes</h1>
+
+		<section id="main">
+			<p>You can view a note that is listed below by clicking on the title. </p>
+			<?php if(!empty($notes)) :?>
+			<ul class="notes-list">
+			<?php foreach($notes as $note) : ?>
+			<li class="notes-list-note-id-<?php print $note->id; ?>">
+				<h3><a href="viewnote.php?nid=<?php print $note->id;?>"title="<?php print $note->title; ?>"><?php print
+					$note->title;?></a></h3>
+			</li>
+			<?php endforeach;?>
+			</ul>
+			<?php else : ?>
+			<p> There is currently no notes on the database. </p>
+			<?php endif; ?>
+		</section>
+
+	<section id="Update">
+
+		<p>Click a note to edit it, or the add button to add a new note</p>
+
+<?php if(!empty($notes)) :?>
+	
+	<form action="editnote.php?mode=add" method="post" enctype="multipart/form-data">
+		<ul>	
+		<li>  <input type="submit" name="submit" value="Add a note" action="editnote.php?mode=add" method="post" /></li>
+		</ul>
+	</form>
+	
+	<br />
+	<h3>Please click on a note to edit it </h3>
+	<br /><br />
+	
+  <ul class="notes-list">
+	<?php foreach($notes as $note) : ?>
+		<li class="notes-list-note-id-<?php print $note->id; ?>">
+		<a href="editnote.php?mode=edit&nid=<?php print $note->id;?> " title="<?php print $note->title; ?>"><?php print
+			$note->title;?></a>
+		
+		</li>
+	<?php endforeach;?>
+	
+	
+	
+	<?php else : ?>
+			<p> There is currently no notes on the database. </p>
+   <?php endif; ?>
+   
+   
+   <?php if($has_files) : ?>
+<hr />
+	<h3>Notes with files </h3>
+	
+   <?foreach ($notes_files as $files) : ?>
+
+
+  <li class="notes-list-note-id-<?php print $files->id; ?>">
+		 <a href="editnote.php?mode=edit&file=true&nid=<?php print $files->id;?> " title="<?php print $files->title; ?>"><?php print
+			$files->title;?></a>
+		
+		</li>
+   
+   <?php endforeach ;?>
+   <?php endif; ?>
+	</section>
+
+
+			<footer id = "footer">
+			&nbsp;
+			</footer>
+		</div>
+</body>
+</html>
+
